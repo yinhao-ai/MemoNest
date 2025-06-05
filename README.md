@@ -1,4 +1,4 @@
-![image](https://github.com/yinhao-ai/MemoNest/build/icon.png)
+![image](https://github.com/yinhao-ai/MemoNest/MemoNest/build/icon.png)
 
 # 📔 MemoNest – An efficient and lightweight personal memo tool
 
