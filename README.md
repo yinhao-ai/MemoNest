@@ -1,4 +1,3 @@
-![image](https://github.com/yinhao-ai/MemoNest/blob/main/MemoNest/build/icon.png)
 
 # 📔 MemoNest – An efficient and lightweight personal memo tool
 
