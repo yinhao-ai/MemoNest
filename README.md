@@ -49,8 +49,8 @@ If you have any suggestions, questions or cooperation intentions, please contact
 
 ## ⚠️ Project Name and Copyright Statement
 
-**MemoNest** is the name of this open source project, intended to be used as a personal/open source memo tool.
-We have not registered any trademarks or copyrights for "MemoNest" and do not intend to cause confusion or infringement with any existing brands or products.
+**Memovyn** is the name of this open source project, intended to be used as a personal/open source memo tool.
+We have not registered any trademarks or copyrights for "Memovyn" and do not intend to cause confusion or infringement with any existing brands or products.
 
 If the name conflicts with any registered trademark or commercial logo, please contact us in time and we will actively cooperate.
 
