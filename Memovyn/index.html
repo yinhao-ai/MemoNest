@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memovyn - Note App</title>
+    <style>
+        :root {
+            --primary-color: #007AFF;
+            --secondary-color: #5AC8FA;
+            --background-color: #F2F2F7;
+            --menu-background: rgba(242, 242, 247, 0.9);
+            --card-background: #FFFFFF;
+            --text-color: #000000;
+            --text-secondary: #8E8E93;
+            --border-color: #E5E5EA;
+            --delete-color: #FF3B30;
+            --success-color: #34C759;
+            --warning-color: #FFCC00;
+            --menu-width: 250px;
+            --header-height: 60px;
+            --transition-speed: 0.3s;
+            --border-radius: 10px;
+        }
+
+        .dark-mode {
+            --primary-color: #0A84FF;
+            --secondary-color: #64D2FF;
+            --background-color: #1C1C1E;
+            --menu-background: rgba(28, 28, 30, 0.9);
+            --card-background: #2C2C2E;
+            --text-color: #FFFFFF;
+            --text-secondary: #8E8E93;
+            --border-color: #38383A;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+        }
+
+        /* 固定侧边菜单 */
+        .sidebar {
+            width: var(--menu-width);
+            height: 100vh;
+            background-color: var(--menu-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border-color);
+            padding: 20px 0;
+            overflow-y: auto;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            transition: background-color var(--transition-speed);
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .app-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .app-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: background-color 0.2s;
+            border-radius: 0;
+            margin: 2px 0;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(0, 122, 255, 0.1);
+        }
+
+        .menu-item.active {
+            background-color: rgba(0, 122, 255, 0.2);
+            color: var(--primary-color);
+        }
+
+        .menu-item i {
+            margin-right: 12px;
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .menu-label {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            margin-left: var(--menu-width);
+            height: 100vh;
+            overflow-y: auto;
+            padding: 20px;
+            transition: margin-left var(--transition-speed);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .search-bar {
+            display: flex;
+            background-color: var(--card-background);
+            border-radius: 10px;
+            padding: 8px 15px;
+            border: 1px solid var(--border-color);
+            width: 300px;
+            transition: all 0.3s;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+
+        .search-bar input {
+            border: none;
+            background: transparent;
+            outline: none;
+            flex: 1;
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        .search-bar i {
+            color: var(--text-secondary);
+            margin-right: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .btn-danger {
+            background-color: var(--delete-color);
+            color: white;
+        }
+
+        /* 笔记卡片 */
+        .notes-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding-bottom: 40px;
+        }
+
+        .note-card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .note-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .note-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .note-content {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .note-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .note-tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .tag {
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            background-color: rgba(0, 122, 255, 0.1);
+            color: var(--primary-color);
+        }
+
+        .tag.work {
+            background-color: rgba(255, 149, 0, 0.1);
+            color: #FF9500;
+        }
+
+        .tag.personal {
+            background-color: rgba(52, 199, 89, 0.1);
+            color: #34C759;
+        }
+
+        .tag.important {
+            background-color: rgba(255, 59, 48, 0.1);
+            color: #FF3B30;
+        }
+
+        .tag.creative {
+            background-color: rgba(175, 82, 222, 0.1);
+            color: #AF52DE;
+        }
+
+        .tag.travel {
+            background-color: rgba(90, 200, 250, 0.1);
+            color: #5AC8FA;
+        }
+
+        /* 模态框 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: translateY(20px);
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* 表单元素 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-background);
+            color: var(--text-color);
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+        }
+
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        /* 联系我们弹窗 */
+        .contact-modal .modal-body {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .contact-email {
+            font-size: 20px;
+            color: var(--primary-color);
+            margin: 20px 0;
+            display: block;
+        }
+
+        .contact-icon {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        /* 设置面板 */
+        .settings-section {
+            margin-bottom: 30px;
+        }
+
+        .settings-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-option:last-child {
+            border-bottom: none;
+        }
+
+        .settings-label {
+            font-size: 16px;
+        }
+
+        .settings-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* 开关 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* 语言选择 */
+        .language-option {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .language-radio {
+            margin-right: 10px;
+            accent-color: var(--primary-color);
+            width: 18px;
+            height: 18px;
+        }
+
+        /* 已删除笔记 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-message {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .empty-description {
+            font-size: 14px;
+        }
+
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        .slide-up {
+            animation: slideUp 0.4s ease forwards;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                transform: translateX(-100%);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .search-bar {
+                width: 100%;
+            }
+        }
+
+        /* 图标字体 */
+        .icon {
+            font-family: "Material Icons";
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <!-- 固定侧边菜单 -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="app-title">Memovyn</div>
+            <div class="app-subtitle" id="app-subtitle">Note App</div>
+        </div>
+        
+        <div class="menu-item active" onclick="showPage('home')">
+            <i class="icon">home</i>
+            <span class="menu-label" id="menu-home">Home</span>
+        </div>
+        
+        <div class="menu-item" onclick="showPage('deleted')">
+            <i class="icon">delete</i>
+            <span class="menu-label" id="menu-deleted">Recently Deleted</span>
+        </div>
+        
+        <div class="menu-item" onclick="showContactModal()">
+            <i class="icon">mail</i>
+            <span class="menu-label" id="menu-contact">Contact Us</span>
+        </div>
+        
+        <div class="menu-item" onclick="showPage('settings')">
+            <i class="icon">settings</i>
+            <span class="menu-label" id="menu-settings">Settings</span>
+        </div>
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        <!-- 主页 -->
+        <div id="home-page" class="page active">
+            <div class="header">
+                <h1 class="header-title" id="home-title">My Notes</h1>
+                
+                <div class="search-bar">
+                    <i class="icon">search</i>
+                    <input type="text" placeholder="Search notes..." id="search-input" oninput="searchNotes()">
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn" onclick="showNoteModal()">
+                        <i class="icon">add</i> <span id="new-note-btn">New Note</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="notes-container" id="notes-container">
+                <!-- 笔记卡片将通过JavaScript动态生成 -->
+            </div>
+        </div>
+
+        <!-- 已删除笔记页面 -->
+        <div id="deleted-page" class="page" style="display: none;">
+            <div class="header">
+                <h1 class="header-title" id="deleted-title">Deleted Notes</h1>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="restore-all-btn" onclick="restoreAllNotes()" style="display: none;">
+                        <i class="icon">restore</i> <span id="restore-all-text">Restore All</span>
+                    </button>
+                    <button class="btn btn-danger" id="delete-all-btn" onclick="deleteAllPermanently()" style="display: none;">
+                        <i class="icon">delete_forever</i> <span id="delete-all-text">Delete All</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="notes-container" id="deleted-notes-container">
+                <!-- 已删除的笔记卡片将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="empty-state" id="deleted-empty-state">
+                <div class="empty-icon">
+                    <i class="icon">delete_outline</i>
+                </div>
+                <div class="empty-message" id="no-deleted-notes">No deleted notes</div>
+                <div class="empty-description" id="deleted-notes-desc">Deleted notes will be shown here for 30 days</div>
+            </div>
+        </div>
+
+        <!-- 设置页面 -->
+        <div id="settings-page" class="page" style="display: none;">
+            <div class="header">
+                <h1 class="header-title" id="settings-title">Settings</h1>
+            </div>
+            
+            <div class="settings-section">
+                <h2 class="settings-title" id="appearance-title">Appearance</h2>
+                
+                <div class="settings-option">
+                    <div>
+                        <div class="settings-label" id="dark-mode-label">Dark Mode</div>
+                        <div class="settings-description" id="dark-mode-desc">Toggle between dark and light theme</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h2 class="settings-title" id="language-title">Language</h2>
+                
+                <div class="language-option">
+                    <input type="radio" id="lang-zh" name="language" value="zh" class="language-radio" onchange="changeLanguage('zh')">
+                    <label for="lang-zh">中文</label>
+                </div>
+                
+                <div class="language-option">
+                    <input type="radio" id="lang-en" name="language" value="en" class="language-radio" checked onchange="changeLanguage('en')">
+                    <label for="lang-en">English</label>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h2 class="settings-title" id="data-title">Data</h2>
+                
+                <div class="settings-option">
+                    <div>
+                        <div class="settings-label" id="clear-data-label">Clear All Data</div>
+                        <div class="settings-description" id="clear-data-desc">Delete all notes and settings (cannot be undone)</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="confirmClearData()">
+                        <i class="icon">delete_forever</i> <span id="clear-btn-text">Clear</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新建/编辑笔记模态框 -->
+    <div class="modal-overlay" id="note-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="note-modal-title">New Note</h2>
+                <button class="modal-close" onclick="closeNoteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="note-form">
+                    <div class="form-group">
+                        <label for="note-title" class="form-label" id="title-label">Title</label>
+                        <input type="text" id="note-title" class="form-control" placeholder="Enter title...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="note-content" class="form-label" id="content-label">Content</label>
+                        <textarea id="note-content" class="form-control" placeholder="Enter note content..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" id="tags-label">Tags</label>
+                        <div class="note-tags" id="tag-selector">
+                            <div class="tag" onclick="toggleTag(this, 'work')" id="tag-work">Work</div>
+                            <div class="tag" onclick="toggleTag(this, 'personal')" id="tag-personal">Personal</div>
+                            <div class="tag" onclick="toggleTag(this, 'important')" id="tag-important">Important</div>
+                            <div class="tag" onclick="toggleTag(this, 'creative')" id="tag-creative">Creative</div>
+                            <div class="tag" onclick="toggleTag(this, 'travel')" id="tag-travel">Travel</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeNoteModal()" id="cancel-btn">Cancel</button>
+                <button class="btn btn-danger" onclick="deleteCurrentNote()" id="delete-btn" style="display: none;"><i class="icon">delete</i> <span id="delete-note-btn-text">Delete</span></button>
+                <button class="btn" onclick="saveNote()" id="save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 联系我们模态框 -->
+    <div class="modal-overlay" id="contact-modal-overlay">
+        <div class="modal contact-modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="contact-title">Contact Us</h2>
+                <button class="modal-close" onclick="closeContactModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="contact-icon">
+                    <i class="icon">mail</i>
+                </div>
+                <p id="contact-text">If you have any questions or suggestions, please contact us:</p>
+                <a href="mailto:Cyinhaos@gmail.com" class="contact-email">Cyinhaos@gmail.com</a>
+                <p id="contact-reply">We will reply to your email as soon as possible.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeContactModal()" id="close-contact-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认清除数据模态框 -->
+    <div class="modal-overlay" id="confirm-clear-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="confirm-clear-title">Confirm Clear Data</h2>
+                <button class="modal-close" onclick="closeConfirmClearModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-clear-text">Are you sure you want to clear all data? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeConfirmClearModal()" id="cancel-clear-btn">Cancel</button>
+                <button class="btn btn-danger" onclick="clearAllData()" id="confirm-clear-btn">Confirm Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let notes = [];
+        let deletedNotes = [];
+        let currentNoteId = null;
+        let currentLanguage = 'en'; // 默认为英文
+        let selectedTags = [];
+        
+        // 翻译数据
+        const translations = {
+            'app-subtitle': { zh: '备忘录应用', en: 'Note App' },
+            'menu-home': { zh: '主页', en: 'Home' },
+            'menu-deleted': { zh: '最近删除', en: 'Recently Deleted' },
+            'menu-contact': { zh: '联系我们', en: 'Contact Us' },
+            'menu-settings': { zh: '设置', en: 'Settings' },
+            'home-title': { zh: '我的笔记', en: 'My Notes' },
+            'search-placeholder': { zh: '搜索笔记...', en: 'Search notes...' },
+            'new-note-btn': { zh: '新建笔记', en: 'New Note' },
+            'deleted-title': { zh: '已删除笔记', en: 'Deleted Notes' },
+            'restore-all-text': { zh: '全部恢复', en: 'Restore All' },
+            'delete-all-text': { zh: '全部删除', en: 'Delete All' },
+            'no-deleted-notes': { zh: '没有已删除的笔记', en: 'No deleted notes' },
+            'deleted-notes-desc': { zh: '删除的笔记将在这里显示30天', en: 'Deleted notes will be shown here for 30 days' },
+            'settings-title': { zh: '设置', en: 'Settings' },
+            'appearance-title': { zh: '外观', en: 'Appearance' },
+            'dark-mode-label': { zh: '深色模式', en: 'Dark Mode' },
+            'dark-mode-desc': { zh: '切换应用的深色/浅色主题', en: 'Toggle between dark and light theme' },
+            'language-title': { zh: '语言', en: 'Language' },
+            'data-title': { zh: '数据', en: 'Data' },
+            'clear-data-label': { zh: '清除所有数据', en: 'Clear All Data' },
+            'clear-data-desc': { zh: '删除所有笔记和设置（不可恢复）', en: 'Delete all notes and settings (cannot be undone)' },
+            'clear-btn-text': { zh: '清除', en: 'Clear' },
+            'note-modal-title-new': { zh: '新建笔记', en: 'New Note' },
+            'note-modal-title-edit': { zh: '编辑笔记', en: 'Edit Note' },
+            'title-label': { zh: '标题', en: 'Title' },
+            'content-label': { zh: '内容', en: 'Content' },
+            'tags-label': { zh: '标签', en: 'Tags' },
+            'tag-work': { zh: '工作', en: 'Work' },
+            'tag-personal': { zh: '个人', en: 'Personal' },
+            'tag-important': { zh: '重要', en: 'Important' },
+            'tag-creative': { zh: '创意', en: 'Creative' },
+            'tag-travel': { zh: '旅行', en: 'Travel' },
+            'cancel-btn': { zh: '取消', en: 'Cancel' },
+            'save-btn': { zh: '保存', en: 'Save' },
+            'contact-title': { zh: '联系我们', en: 'Contact Us' },
+            'contact-text': { zh: '如有任何问题或建议，请联系我们：', en: 'If you have any questions or suggestions, please contact us:' },
+            'contact-reply': { zh: '我们会尽快回复您的邮件。', en: 'We will reply to your email as soon as possible.' },
+            'close-contact-btn': { zh: '关闭', en: 'Close' },
+            'confirm-clear-title': { zh: '确认清除数据', en: 'Confirm Clear Data' },
+            'confirm-clear-text': { zh: '您确定要清除所有数据吗？此操作不可恢复。', en: 'Are you sure you want to clear all data? This action cannot be undone.' },
+            'cancel-clear-btn': { zh: '取消', en: 'Cancel' },
+            'confirm-clear-btn': { zh: '确认清除', en: 'Confirm Clear' },
+            'no-notes': { zh: '没有笔记', en: 'No Notes' },
+            'no-notes-desc': { zh: '点击"新建笔记"按钮创建您的第一个笔记', en: 'Click the "New Note" button to create your first note' },
+            'no-results': { zh: '没有找到匹配的笔记', en: 'No matching notes found' },
+            'no-results-desc': { zh: '尝试使用不同的搜索词', en: 'Try using different search terms' },
+            'restore-btn': { zh: '恢复', en: 'Restore' },
+            'delete-btn': { zh: '删除', en: 'Delete' },
+            'title-placeholder': { zh: '输入标题...', en: 'Enter title...' },
+            'content-placeholder': { zh: '输入笔记内容...', en: 'Enter note content...' }
+        };
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNotes();
+            loadDeletedNotes();
+            loadSettings();
+            renderNotes();
+            renderDeletedNotes();
+            checkDeletedNotesEmpty();
+            updateLanguage(); // 确保所有文本都正确翻译
+        });
+        
+        // 加载笔记
+        function loadNotes() {
+            const savedNotes = localStorage.getItem('memonest_notes');
+            if (savedNotes) {
+                notes = JSON.parse(savedNotes);
+            } else {
+                // 示例笔记
+                notes = [
+                    {
+                        id: 1,
+                        title: 'Welcome to MemoNest',
+                        content: 'This is a simple yet powerful note-taking app where you can create, edit, and manage your notes. Click the "New Note" button in the top right corner to get started!',
+                        date: new Date().toISOString(),
+                        tags: ['important']
+                    },
+                    {
+                        id: 2,
+                        title: 'Using Tags',
+                        content: 'You can add tags to your notes, such as "Work", "Personal", "Important", etc., to better organize and find your notes.',
+                        date: new Date().toISOString(),
+                        tags: ['work', 'creative']
+                    }
+                ];
+                saveNotes();
+            }
+        }
+        
+        // 加载已删除笔记
+        function loadDeletedNotes() {
+            const savedDeletedNotes = localStorage.getItem('memonest_deleted_notes');
+            if (savedDeletedNotes) {
+                deletedNotes = JSON.parse(savedDeletedNotes);
+            }
+        }
+        
+        // 加载设置
+        function loadSettings() {
+            const darkMode = localStorage.getItem('memovyn_dark_mode') === 'true';
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('dark-mode-toggle').checked = true;
+            }
+            
+            const language = localStorage.getItem('memovyn_language') || 'en';
+            currentLanguage = language;
+            document.getElementById(`lang-${language}`).checked = true;
+        }
+        
+        // 保存笔记到本地存储
+        function saveNotes() {
+            localStorage.setItem('memonest_notes', JSON.stringify(notes));
+        }
+        
+        // 保存已删除笔记到本地存储
+        function saveDeletedNotes() {
+            localStorage.setItem('memonest_deleted_notes', JSON.stringify(deletedNotes));
+        }
+        
+        // 渲染笔记列表
+        function renderNotes() {
+            const container = document.getElementById('notes-container');
+            container.innerHTML = '';
+            
+            if (notes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="icon">note_add</i>
+                        </div>
+                        <div class="empty-message">${translations['no-notes'][currentLanguage]}</div>
+                        <div class="empty-description">${translations['no-notes-desc'][currentLanguage]}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            notes.forEach((note, index) => {
+                const noteCard = document.createElement('div');
+                noteCard.className = 'note-card slide-up';
+                noteCard.style.animationDelay = `${index * 0.05}s`;
+                
+                let tagsHtml = '';
+                if (note.tags && note.tags.length > 0) {
+                    tagsHtml = '<div class="note-tags">';
+                    note.tags.forEach(tag => {
+                        const tagName = translations[`tag-${tag}`] ? translations[`tag-${tag}`][currentLanguage] : tag;
+                        tagsHtml += `<span class="tag ${tag}">${tagName}</span>`;
+                    });
+                    tagsHtml += '</div>';
+                }
+                
+                const date = new Date(note.date);
+                const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+                
+                noteCard.innerHTML = `
+                    <div class="note-title">${note.title}</div>
+                    ${tagsHtml}
+                    <div class="note-content">${note.content}</div>
+                    <div class="note-footer">
+                        <span>${formattedDate}</span>
+                    </div>
+                `;
+                
+                noteCard.addEventListener('click', () => editNote(note.id));
+                container.appendChild(noteCard);
+            });
+        }
+        
+        // 渲染已删除笔记列表
+        function renderDeletedNotes() {
+            const container = document.getElementById('deleted-notes-container');
+            container.innerHTML = '';
+            
+            if (deletedNotes.length === 0) {
+                document.getElementById('deleted-empty-state').style.display = 'block';
+                document.getElementById('restore-all-btn').style.display = 'none';
+                document.getElementById('delete-all-btn').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('deleted-empty-state').style.display = 'none';
+            document.getElementById('restore-all-btn').style.display = 'inline-flex';
+            document.getElementById('delete-all-btn').style.display = 'inline-flex';
+            
+            deletedNotes.forEach((note, index) => {
+                const noteCard = document.createElement('div');
+                noteCard.className = 'note-card slide-up';
+                noteCard.style.animationDelay = `${index * 0.05}s`;
+                
+                let tagsHtml = '';
+                if (note.tags && note.tags.length > 0) {
+                    tagsHtml = '<div class="note-tags">';
+                    note.tags.forEach(tag => {
+                        const tagName = translations[`tag-${tag}`] ? translations[`tag-${tag}`][currentLanguage] : tag;
+                        tagsHtml += `<span class="tag ${tag}">${tagName}</span>`;
+                    });
+                    tagsHtml += '</div>';
+                }
+                
+                const date = new Date(note.date);
+                const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+                
+                noteCard.innerHTML = `
+                    <div class="note-title">${note.title}</div>
+                    ${tagsHtml}
+                    <div class="note-content">${note.content}</div>
+                    <div class="note-footer">
+                        <span>${formattedDate}</span>
+                        <div>
+                            <button class="btn btn-secondary" onclick="event.stopPropagation(); restoreNote(${note.id})">
+                                <i class="icon">restore</i> ${translations['restore-btn'][currentLanguage]}
+                            </button>
+                            <button class="btn btn-danger" onclick="event.stopPropagation(); deletePermanently(${note.id})">
+                                <i class="icon">delete_forever</i> ${translations['delete-btn'][currentLanguage]}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(noteCard);
+            });
+        }
+        
+        // 检查已删除笔记是否为空
+        function checkDeletedNotesEmpty() {
+            if (deletedNotes.length === 0) {
+                document.getElementById('deleted-empty-state').style.display = 'block';
+                document.getElementById('restore-all-btn').style.display = 'none';
+                document.getElementById('delete-all-btn').style.display = 'none';
+            } else {
+                document.getElementById('deleted-empty-state').style.display = 'none';
+                document.getElementById('restore-all-btn').style.display = 'inline-flex';
+                document.getElementById('delete-all-btn').style.display = 'inline-flex';
+            }
+        }
+        
+        // 显示新建笔记模态框
+        function showNoteModal() {
+            document.getElementById('note-modal-title').textContent = translations['note-modal-title-new'][currentLanguage];
+            document.getElementById('note-title').value = '';
+            document.getElementById('note-content').value = '';
+            document.getElementById('note-title').placeholder = translations['title-placeholder'][currentLanguage];
+            document.getElementById('note-content').placeholder = translations['content-placeholder'][currentLanguage];
+            currentNoteId = null;
+            selectedTags = [];
+            
+            // 重置标签选择
+            const tagElements = document.querySelectorAll('#tag-selector .tag');
+            tagElements.forEach(tag => {
+                tag.classList.remove('active');
+            });
+            
+            // 隐藏删除按钮（新建笔记时不显示）
+            document.getElementById('delete-btn').style.display = 'none';
+            
+            document.getElementById('note-modal-overlay').classList.add('active');
+        }
+        
+        // 关闭笔记模态框
+        function closeNoteModal() {
+            document.getElementById('note-modal-overlay').classList.remove('active');
+        }
+        
+        // 显示联系我们模态框
+        function showContactModal() {
+            document.getElementById('contact-modal-overlay').classList.add('active');
+        }
+        
+        // 关闭联系我们模态框
+        function closeContactModal() {
+            document.getElementById('contact-modal-overlay').classList.remove('active');
+        }
+        
+        // 显示确认清除数据模态框
+        function confirmClearData() {
+            document.getElementById('confirm-clear-modal-overlay').classList.add('active');
+        }
+        
+        // 关闭确认清除数据模态框
+        function closeConfirmClearModal() {
+            document.getElementById('confirm-clear-modal-overlay').classList.remove('active');
+        }
+        
+        // 保存笔记
+        function saveNote() {
+            const title = document.getElementById('note-title').value.trim();
+            const content = document.getElementById('note-content').value.trim();
+            
+            if (!title) {
+                alert(currentLanguage === 'zh' ? '请输入标题' : 'Please enter a title');
+                return;
+            }
+            
+            if (currentNoteId === null) {
+                // 新建笔记
+                const newNote = {
+                    id: Date.now(),
+                    title: title,
+                    content: content,
+                    date: new Date().toISOString(),
+                    tags: selectedTags
+                };
+                notes.unshift(newNote);
+            } else {
+                // 编辑笔记
+                const noteIndex = notes.findIndex(note => note.id === currentNoteId);
+                if (noteIndex !== -1) {
+                    notes[noteIndex].title = title;
+                    notes[noteIndex].content = content;
+                    notes[noteIndex].tags = selectedTags;
+                    notes[noteIndex].date = new Date().toISOString();
+                }
+            }
+            
+            saveNotes();
+            renderNotes();
+            closeNoteModal();
+        }
+        
+        // 编辑笔记
+        function editNote(id) {
+            const note = notes.find(note => note.id === id);
+            if (note) {
+                document.getElementById('note-modal-title').textContent = translations['note-modal-title-edit'][currentLanguage];
+                document.getElementById('note-title').value = note.title;
+                document.getElementById('note-content').value = note.content;
+                document.getElementById('note-title').placeholder = translations['title-placeholder'][currentLanguage];
+                document.getElementById('note-content').placeholder = translations['content-placeholder'][currentLanguage];
+                currentNoteId = note.id;
+                selectedTags = [...note.tags] || [];
+                
+                // 设置标签选择状态
+                const tagElements = document.querySelectorAll('#tag-selector .tag');
+                tagElements.forEach(tag => {
+                    const tagType = tag.onclick.toString().match(/toggleTag\(this, '(.+?)'\)/)[1];
+                    if (selectedTags.includes(tagType)) {
+                        tag.classList.add('active');
+                    } else {
+                        tag.classList.remove('active');
+                    }
+                });
+                
+                // 显示删除按钮（仅在编辑已有笔记时）
+                document.getElementById('delete-btn').style.display = 'inline-flex';
+                
+                document.getElementById('note-modal-overlay').classList.add('active');
+            }
+        }
+        
+        // 删除笔记
+        function deleteNote(id) {
+            const noteIndex = notes.findIndex(note => note.id === id);
+            if (noteIndex !== -1) {
+                const deletedNote = notes.splice(noteIndex, 1)[0];
+                deletedNotes.unshift(deletedNote);
+                saveNotes();
+                saveDeletedNotes();
+                renderNotes();
+                checkDeletedNotesEmpty();
+            }
+        }
+        
+        // 删除当前正在编辑的笔记
+        function deleteCurrentNote() {
+            if (currentNoteId !== null) {
+                deleteNote(currentNoteId);
+                closeNoteModal();
+            }
+        }
+        
+        // 恢复笔记
+        function restoreNote(id) {
+            const noteIndex = deletedNotes.findIndex(note => note.id === id);
+            if (noteIndex !== -1) {
+                const restoredNote = deletedNotes.splice(noteIndex, 1)[0];
+                notes.unshift(restoredNote);
+                saveNotes();
+                saveDeletedNotes();
+                renderDeletedNotes();
+                checkDeletedNotesEmpty();
+            }
+        }
+        
+        // 永久删除笔记
+        function deletePermanently(id) {
+            const noteIndex = deletedNotes.findIndex(note => note.id === id);
+            if (noteIndex !== -1) {
+                deletedNotes.splice(noteIndex, 1);
+                saveDeletedNotes();
+                renderDeletedNotes();
+                checkDeletedNotesEmpty();
+            }
+        }
+        
+        // 恢复所有笔记
+        function restoreAllNotes() {
+            notes = [...notes, ...deletedNotes];
+            deletedNotes = [];
+            saveNotes();
+            saveDeletedNotes();
+            renderDeletedNotes();
+            renderNotes();
+            checkDeletedNotesEmpty();
+        }
+        
+        // 永久删除所有笔记
+        function deleteAllPermanently() {
+            deletedNotes = [];
+            saveDeletedNotes();
+            renderDeletedNotes();
+            checkDeletedNotesEmpty();
+        }
+        
+        // 清除所有数据
+        function clearAllData() {
+            notes = [];
+            deletedNotes = [];
+            saveNotes();
+            saveDeletedNotes();
+            renderNotes();
+            renderDeletedNotes();
+            checkDeletedNotesEmpty();
+            closeConfirmClearModal();
+        }
+        
+        // 切换标签选择
+        function toggleTag(element, tag) {
+            element.classList.toggle('active');
+            
+            if (element.classList.contains('active')) {
+                if (!selectedTags.includes(tag)) {
+                    selectedTags.push(tag);
+                }
+            } else {
+                const index = selectedTags.indexOf(tag);
+                if (index !== -1) {
+                    selectedTags.splice(index, 1);
+                }
+            }
+        }
+        
+        // 搜索笔记
+        function searchNotes() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const container = document.getElementById('notes-container');
+            container.innerHTML = '';
+            
+            const filteredNotes = notes.filter(note => 
+                note.title.toLowerCase().includes(searchTerm) || 
+                note.content.toLowerCase().includes(searchTerm)
+            );
+            
+            if (filteredNotes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="icon">search</i>
+                        </div>
+                        <div class="empty-message">${translations['no-results'][currentLanguage]}</div>
+                        <div class="empty-description">${translations['no-results-desc'][currentLanguage]}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredNotes.forEach((note, index) => {
+                const noteCard = document.createElement('div');
+                noteCard.className = 'note-card slide-up';
+                noteCard.style.animationDelay = `${index * 0.05}s`;
+                
+                let tagsHtml = '';
+                if (note.tags && note.tags.length > 0) {
+                    tagsHtml = '<div class="note-tags">';
+                    note.tags.forEach(tag => {
+                        const tagName = translations[`tag-${tag}`] ? translations[`tag-${tag}`][currentLanguage] : tag;
+                        tagsHtml += `<span class="tag ${tag}">${tagName}</span>`;
+                    });
+                    tagsHtml += '</div>';
+                }
+                
+                const date = new Date(note.date);
+                const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+                
+                noteCard.innerHTML = `
+                    <div class="note-title">${note.title}</div>
+                    ${tagsHtml}
+                    <div class="note-content">${note.content}</div>
+                    <div class="note-footer">
+                        <span>${formattedDate}</span>
+                    </div>
+                `;
+                
+                noteCard.addEventListener('click', () => editNote(note.id));
+                container.appendChild(noteCard);
+            });
+        }
+        
+        // 切换深色模式
+        function toggleDarkMode() {
+            const darkModeEnabled = document.getElementById('dark-mode-toggle').checked;
+            if (darkModeEnabled) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            localStorage.setItem('memovyn_dark_mode', darkModeEnabled);
+        }
+        
+        // 切换语言
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('memovyn_language', lang);
+            updateLanguage();
+        }
+        
+        // 更新界面语言
+        function updateLanguage() {
+            // 更新搜索框占位符
+            document.getElementById('search-input').placeholder = translations['search-placeholder'][currentLanguage];
+            
+            // 更新所有带ID的元素文本
+            for (const [key, value] of Object.entries(translations)) {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.textContent = value[currentLanguage];
+                }
+            }
+            
+            // 更新标签文本
+            document.querySelectorAll('#tag-selector .tag').forEach(tag => {
+                const tagType = tag.onclick.toString().match(/toggleTag\(this, '(.+?)'\)/)[1];
+                const tagId = `tag-${tagType}`;
+                if (translations[tagId]) {
+                    tag.textContent = translations[tagId][currentLanguage];
+                }
+            });
+            
+            // 更新模态框标题
+            if (currentNoteId === null) {
+                document.getElementById('note-modal-title').textContent = translations['note-modal-title-new'][currentLanguage];
+            } else {
+                document.getElementById('note-modal-title').textContent = translations['note-modal-title-edit'][currentLanguage];
+            }
+            
+            // 更新输入框占位符
+            document.getElementById('note-title').placeholder = translations['title-placeholder'][currentLanguage];
+            document.getElementById('note-content').placeholder = translations['content-placeholder'][currentLanguage];
+            
+            // 更新删除按钮文本
+            document.getElementById('delete-note-btn-text').textContent = translations['delete-btn'][currentLanguage];
+            
+            // 重新渲染笔记和已删除笔记
+            renderNotes();
+            renderDeletedNotes();
+        }
+        
+        // 显示页面
+        function showPage(pageId) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.display = 'none';
+            });
+            
+            // 显示选定页面
+            document.getElementById(`${pageId}-page`).style.display = 'block';
+            
+            // 更新菜单项激活状态
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 根据页面ID查找对应的菜单项
+            let menuItem;
+            if (pageId === 'home') {
+                menuItem = document.querySelector('.menu-item:nth-child(1)');
+            } else if (pageId === 'deleted') {
+                menuItem = document.querySelector('.menu-item:nth-child(2)');
+            } else if (pageId === 'settings') {
+                menuItem = document.querySelector('.menu-item:nth-child(4)');
+            }
+            
+            if (menuItem) {
+                menuItem.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
