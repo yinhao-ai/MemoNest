@@ -1,7 +1,7 @@
 {
-  "name": "memonest",
+  "name": "memovyn",
   "version": "1.0.0",
-  "description": "MemoNest - 备忘录应用",
+  "description": "Memovyn - 备忘录应用",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -22,8 +22,8 @@
     "electron-packager": "^17.1.2"
   },
   "build": {
-    "appId": "com.manus.memonest",
-    "productName": "MemoNest",
+    "appId": "com.yinhao.memovyn",
+    "productName": "Memovyn",
     "directories": {
       "output": "dist"
     },
