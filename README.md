@@ -1,7 +1,7 @@
 
-# 📔 MemoNest – An efficient and lightweight personal memo tool
+# 📔 Memovyn – An efficient and lightweight personal memo tool
 
-**MemoNest** is a simple, beautiful and easy-to-use desktop memo application designed to help users quickly record ideas, tasks and reminders.
+**Memovyn** is a simple, beautiful and easy-to-use desktop memo application designed to help users quickly record ideas, tasks and reminders.
 
 ---
 
@@ -21,7 +21,7 @@
 
 Click the button below to get the latest installation package:
 
-🔗 [Click to download MemoNest Installation package (v1.0.0)](https://github.com/yinhao-ai/MemoNest/releases/latest)
+🔗 [Click to download Memovyn Installation package (v1.0.0)](https://github.com/yinhao-ai/Memovyn/releases/latest)
 
 ---
 
